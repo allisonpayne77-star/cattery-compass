@@ -19,7 +19,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CoursePaywall, useCoursePurchases } from "@/components/CoursePaywall";
+import { CoursePaywall, useCoursePurchases, useIsAdmin } from "@/components/CoursePaywall";
 import { CourseBridge } from "@/components/CourseBridge";
 import { useAcademyCourse, type AcademyLesson, type QuizQuestion, PASS_THRESHOLD } from "@/lib/academy-data";
 import {
@@ -54,6 +54,7 @@ function ModulePage() {
   const { courseSlug, moduleSlug } = Route.useParams();
   const courseQuery = useAcademyCourse(courseSlug);
   const purchases = useCoursePurchases();
+  const isAdmin = useIsAdmin();
   const progress = useAcademyProgress();
   const rows = progress.data;
   const { user } = useAuth();
@@ -67,8 +68,11 @@ function ModulePage() {
   const index = course?.modules.findIndex((mod) => mod.slug === moduleSlug) ?? -1;
   const module = index >= 0 ? course?.modules[index] : undefined;
 
-  const ownedC = (purchases.data ?? []).some((x) => x.is_bundle || x.course_id === course?.id);
-  if (course && course.priceCents > 0 && !ownedC) {
+  // Admins can read every course in the database, so they are never paywalled.
+  const ownedC =
+    isAdmin.data === true ||
+    (purchases.data ?? []).some((x) => x.is_bundle || x.course_id === course?.id);
+  if (course && course.priceCents > 0 && !ownedC && !isAdmin.isLoading) {
     return <div className="max-w-3xl mx-auto py-10"><CoursePaywall course={course} /></div>;
   }
 

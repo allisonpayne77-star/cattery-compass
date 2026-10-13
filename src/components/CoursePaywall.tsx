@@ -26,6 +26,29 @@ export function useCoursePurchases() {
 }
 
 /**
+ * True when the signed-in user holds the admin role. The database already lets
+ * admins read every course (see can_read_course), so the paywall must not hide
+ * content from them.
+ */
+export function useIsAdmin() {
+  return useQuery({
+    queryKey: ["is-admin"],
+    queryFn: async (): Promise<boolean> => {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) return false;
+      const { data } = await (supabase as any)
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", uid)
+        .eq("role", "admin")
+        .maybeSingle();
+      return !!data;
+    },
+  });
+}
+
+/**
  * A course is locked only if it costs something AND the user owns neither it
  * nor the bundle. Free courses (101 Foundations, 103) are never locked.
  * While purchases are still loading we return false, so a paid-up student
@@ -33,9 +56,11 @@ export function useCoursePurchases() {
  */
 export function useCourseLocked(course: AcademyCourse) {
   const purchases = useCoursePurchases();
+  const isAdmin = useIsAdmin();
 
   if (course.priceCents === 0) return { locked: false, loading: false };
-  if (purchases.isLoading) return { locked: false, loading: true };
+  if (purchases.isLoading || isAdmin.isLoading) return { locked: false, loading: true };
+  if (isAdmin.data) return { locked: false, loading: false };
 
   const rows = purchases.data ?? [];
   const owned = rows.some((p) => p.is_bundle || p.course_id === course.id);

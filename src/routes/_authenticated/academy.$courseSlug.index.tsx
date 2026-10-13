@@ -12,7 +12,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { useAcademyCourse } from "@/lib/academy-data";
-import { CoursePaywall, useCoursePurchases } from "@/components/CoursePaywall";
+import { CoursePaywall, useCoursePurchases, useIsAdmin } from "@/components/CoursePaywall";
 import {
   useAcademyProgress,
   courseStats,
@@ -45,6 +45,7 @@ function CoursePage() {
   const progress = useAcademyProgress();
   const rows = progress.data;
   const purchases = useCoursePurchases();
+  const isAdmin = useIsAdmin();
 
   if (courseQuery.isLoading) {
     return <div className="max-w-xl mx-auto py-16 text-center text-muted-foreground">Loading course…</div>;
@@ -62,8 +63,12 @@ function CoursePage() {
   }
 
   const stats = courseStats(rows, course);
-  const owned = (purchases.data ?? []).some((x) => x.is_bundle || x.course_id === course.id);
-  const locked = course.priceCents > 0 && !purchases.isLoading && !owned;
+  // Admins can read every course in the database, so they are never paywalled.
+  const owned =
+    isAdmin.data === true ||
+    (purchases.data ?? []).some((x) => x.is_bundle || x.course_id === course.id);
+  const locked =
+    course.priceCents > 0 && !purchases.isLoading && !isAdmin.isLoading && !owned;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
