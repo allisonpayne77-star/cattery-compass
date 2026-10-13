@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { LayoutDashboard, HeartPulse, LogOut, GraduationCap, Upload, User, BarChart2, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SetupDialog } from "@/components/SetupDialog";
 const companionIcon = { url: "/catterymanager-logo.png" };
 
 const AUTH_NEXT_STORAGE_KEY = "cattery-companion-auth-next";
@@ -85,14 +86,20 @@ function CompanionIcon({ className }: { className?: string }) {
   return <img src={companionIcon.url} alt="Cattery Manager" className={className} />;
 }
 
-const items = [
+const collegeItems = [
+  { title: "Cat College", url: "/academy", icon: GraduationCap },
+  { title: "My Profile", url: "/profile", icon: User },
+];
+
+const managerItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, exact: true },
   { title: "Cattery Manager", url: "/cattery", icon: CompanionIcon },
   { title: "Breeding & Litters", url: "/breeding", icon: HeartPulse },
+];
+
+const toolItems = [
   { title: "Colour Predictor", url: "/predictor", icon: HeartPulse },
   { title: "EMS Colour Game", url: "/learn-ems", icon: HeartPulse },
-  { title: "Cat College", url: "/academy", icon: GraduationCap },
-  { title: "My Profile", url: "/profile", icon: User },
 ];
 
 function AuthLayout() {
@@ -124,6 +131,7 @@ function AuthLayout() {
           <main className="flex-1 p-4 sm:p-8">
             <Outlet />
           </main>
+          <SetupDialog />
         </div>
       </div>
     </SidebarProvider>
@@ -168,23 +176,29 @@ function AppSidebar({ email }: { email: string }) {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((it) => (
-                <SidebarMenuItem key={it.url}>
-                  <SidebarMenuButton asChild isActive={isActive(it.url, it.exact)}>
-                    <Link to={it.url}>
-                      <it.icon className="h-4 w-4" />
-                      <span>{it.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {[
+          { label: "Cat College", entries: collegeItems },
+          { label: "Cattery Manager", entries: managerItems },
+          { label: "Tools", entries: toolItems },
+        ].map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.entries.map((it) => (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton asChild isActive={isActive(it.url, (it as { exact?: boolean }).exact)}>
+                      <Link to={it.url}>
+                        <it.icon className="h-4 w-4" />
+                        <span>{it.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
         {isAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel>Admin</SidebarGroupLabel>

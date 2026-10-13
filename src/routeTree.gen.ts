@@ -21,6 +21,7 @@ import { Route as CertificateCourseSlugRouteImport } from './routes/certificate.
 import { Route as ApiStripeWebhookRouteImport } from './routes/api.stripe-webhook'
 import { Route as ApiCheckoutRouteImport } from './routes/api.checkout'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
+import { Route as AuthenticatedSetupRouteImport } from './routes/_authenticated/setup'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPredictorRouteImport } from './routes/_authenticated/predictor'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -96,6 +97,11 @@ const ApiCheckoutRoute = ApiCheckoutRouteImport.update({
 const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSetupRoute = AuthenticatedSetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/predictor': typeof AuthenticatedPredictorRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/setup': typeof AuthenticatedSetupRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/checkout': typeof ApiCheckoutRoute
   '/api/stripe-webhook': typeof ApiStripeWebhookRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/predictor': typeof AuthenticatedPredictorRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/setup': typeof AuthenticatedSetupRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
   '/api/checkout': typeof ApiCheckoutRoute
   '/api/stripe-webhook': typeof ApiStripeWebhookRoute
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/predictor': typeof AuthenticatedPredictorRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/setup': typeof AuthenticatedSetupRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
   '/api/checkout': typeof ApiCheckoutRoute
   '/api/stripe-webhook': typeof ApiStripeWebhookRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/predictor'
     | '/profile'
+    | '/setup'
     | '/welcome'
     | '/api/checkout'
     | '/api/stripe-webhook'
@@ -326,6 +336,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/predictor'
     | '/profile'
+    | '/setup'
     | '/welcome'
     | '/api/checkout'
     | '/api/stripe-webhook'
@@ -356,6 +367,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/predictor'
     | '/_authenticated/profile'
+    | '/_authenticated/setup'
     | '/_authenticated/welcome'
     | '/api/checkout'
     | '/api/stripe-webhook'
@@ -473,6 +485,13 @@ declare module '@tanstack/react-router' {
       path: '/welcome'
       fullPath: '/welcome'
       preLoaderRoute: typeof AuthenticatedWelcomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/setup': {
+      id: '/_authenticated/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof AuthenticatedSetupRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/profile': {
@@ -652,6 +671,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedPredictorRoute: typeof AuthenticatedPredictorRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSetupRoute: typeof AuthenticatedSetupRoute
   AuthenticatedWelcomeRoute: typeof AuthenticatedWelcomeRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminCoursesRoute: typeof AuthenticatedAdminCoursesRoute
@@ -666,6 +686,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedPredictorRoute: AuthenticatedPredictorRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSetupRoute: AuthenticatedSetupRoute,
   AuthenticatedWelcomeRoute: AuthenticatedWelcomeRoute,
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedAdminCoursesRoute: AuthenticatedAdminCoursesRoute,

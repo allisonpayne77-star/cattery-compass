@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Lock, PlayCircle } from "lucide-react";
+import { CheckCircle2, Lock, PlayCircle, Award } from "lucide-react";
 import { useAcademyCourses } from "@/lib/academy-data";
 import { courseStats, isModuleUnlocked, modulePassed, useAcademyProgress } from "@/lib/academy-progress";
 
@@ -190,6 +190,22 @@ function Academy() {
                         );
                       })}
                     </div>
+
+                    {stats.percent === 100 ? (
+                      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border-l-4 border-l-[#2E7D4F] bg-[#F1F7F3] px-4 py-3">
+                        <div>
+                          <p className="font-display font-semibold">Course complete</p>
+                          <p className="text-sm text-muted-foreground">
+                            All {stats.total} modules passed — your certificate is ready.
+                          </p>
+                        </div>
+                        <Button asChild size="sm">
+                          <Link to="/certificate/$courseSlug" params={{ courseSlug: course.slug }}>
+                            <Award className="h-4 w-4 mr-1" /> View certificate
+                          </Link>
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 );
               })}

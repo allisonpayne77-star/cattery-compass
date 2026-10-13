@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Download, Share2, Printer } from "lucide-react";
 
 const background = "/certificate-background-v2.png";
 const seal = "/catcollege-logo.png";
@@ -16,6 +17,11 @@ export const Route = createFileRoute("/certificate/$courseSlug")({
 });
 
 type CourseRow = { id: string; title: string; slug: string };
+
+/** Strips characters that are illegal in filenames. */
+function safeFilePart(s: string) {
+  return s.replace(/[\\/:*?"<>|]+/g, "").replace(/\s+/g, " ").trim();
+}
 
 function formatDate(d: Date) {
   return d.toLocaleDateString("en-CA", { year: "numeric", month: "long", day: "numeric" });
@@ -33,6 +39,10 @@ function CertificatePage() {
   const [catteryName, setCatteryName] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(true);
+  const [working, setWorking] = useState<null | "pdf" | "share">(null);
+  const [canShareFiles, setCanShareFiles] = useState(false);
+
+  const certRef = useRef<HTMLDivElement>(null);
 
   const defaultName = useMemo(() => {
     const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -44,6 +54,17 @@ function CertificatePage() {
   useEffect(() => {
     if (!loading && !user) nav({ to: "/auth" as "/", replace: true });
   }, [user, loading, nav]);
+
+  // Phones can hand a file to the share sheet; most desktops cannot, so the
+  // Share button only appears where it will actually work.
+  useEffect(() => {
+    try {
+      const f = new File(["x"], "probe.pdf", { type: "application/pdf" });
+      setCanShareFiles(Boolean(navigator.canShare?.({ files: [f] })));
+    } catch {
+      setCanShareFiles(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -60,8 +81,9 @@ function CertificatePage() {
         .eq("course_id", (c as CourseRow).id);
       if (!cancelled) setModuleCount(count ?? 0);
 
+      // profiles is keyed by user_id, NOT id.
       const { data: prof } = await supabase
-        .from("profiles").select("cattery_name").eq("id", user!.id).maybeSingle();
+        .from("profiles").select("cattery_name").eq("user_id", user!.id).maybeSingle();
       if (!cancelled && prof?.cattery_name) setCatteryName(prof.cattery_name as string);
 
       const { data: prog } = await supabase
@@ -88,6 +110,95 @@ function CertificatePage() {
   // when a legacy row has no completed_at stored against it.
   const dateShown = completedAt ?? new Date();
   const courseTitle = course?.title ?? "";
+
+  const fileName =
+    `Cat College - ${safeFilePart(courseTitle)} - ${safeFilePart(name || "Certificate")}.pdf`;
+
+  /** Renders the certificate element to a landscape letter PDF. */
+  async function buildPdf(): Promise<Blob> {
+    const el = certRef.current;
+    if (!el) throw new Error("Certificate not ready");
+
+    // Wait for the script font, or the name renders in a fallback typeface.
+    try {
+      await (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts?.ready;
+    } catch {
+      /* ignore */
+    }
+
+    const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+      import("html2canvas-pro"),
+      import("jspdf"),
+    ]);
+
+    const canvas = await html2canvas(el, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    });
+
+    const pdf = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const ratio = canvas.width / canvas.height;
+
+    let w = pageW;
+    let h = pageW / ratio;
+    if (h > pageH) { h = pageH; w = pageH * ratio; }
+
+    pdf.addImage(
+      canvas.toDataURL("image/jpeg", 0.95),
+      "JPEG",
+      (pageW - w) / 2,
+      (pageH - h) / 2,
+      w,
+      h,
+    );
+    return pdf.output("blob");
+  }
+
+  async function handleDownload() {
+    setWorking("pdf");
+    try {
+      const blob = await buildPdf();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+    } catch (err) {
+      console.error(err);
+      alert("Sorry — the certificate could not be generated. Try Print instead.");
+    } finally {
+      setWorking(null);
+    }
+  }
+
+  async function handleShare() {
+    setWorking("share");
+    try {
+      const blob = await buildPdf();
+      const file = new File([blob], fileName, { type: "application/pdf" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "Cat College certificate",
+          text: `${name} — ${courseTitle}`,
+        });
+      } else {
+        await handleDownload();
+      }
+    } catch (err) {
+      // A cancelled share sheet throws AbortError; that is not a failure.
+      if ((err as { name?: string })?.name !== "AbortError") console.error(err);
+    } finally {
+      setWorking(null);
+    }
+  }
 
   if (busy) {
     return <div className="p-10 text-center text-muted-foreground">Loading your certificate…</div>;
@@ -207,20 +318,34 @@ function CertificatePage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button onClick={() => window.print()} disabled={!complete}>
-            Print / Save as PDF
+        <div className="flex flex-wrap items-center gap-2">
+          <Button onClick={handleDownload} disabled={!complete || working !== null}>
+            <Download className="h-4 w-4 mr-1" />
+            {working === "pdf" ? "Preparing…" : "Download PDF"}
           </Button>
-          <span className="text-xs text-muted-foreground">
-            Both names print exactly as typed here.
-          </span>
+
+          {canShareFiles ? (
+            <Button
+              variant="secondary"
+              onClick={handleShare}
+              disabled={!complete || working !== null}
+            >
+              <Share2 className="h-4 w-4 mr-1" />
+              {working === "share" ? "Preparing…" : "Share"}
+            </Button>
+          ) : null}
+
+          <Button variant="ghost" onClick={() => window.print()} disabled={!complete}>
+            <Printer className="h-4 w-4 mr-1" /> Print
+          </Button>
         </div>
+
         <p className="text-xs text-muted-foreground">
-          In the print dialog, choose Landscape and turn on background graphics.
+          Both names print exactly as typed above. The PDF is letter size, landscape.
         </p>
       </div>
 
-      <div className="cert-wrap">
+      <div className="cert-wrap" ref={certRef}>
         <img className="cert-bg" src={background} alt="Cat College certificate" />
 
         <div className="cert-field cert-college">Cat College</div>
