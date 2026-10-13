@@ -1,0 +1,1 @@
+ALTER TABLE public.kittens ADD COLUMN sale_rights text;

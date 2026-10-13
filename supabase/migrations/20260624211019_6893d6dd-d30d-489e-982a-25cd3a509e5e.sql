@@ -1,0 +1,1 @@
+ALTER TABLE public.matings ADD COLUMN mating_end_date date;
