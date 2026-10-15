@@ -73,7 +73,7 @@ function LandingPage() {
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            to="/auth"
+            to="/auth?mode=signup"
             className="w-full rounded-md bg-[#C8102E] px-7 py-3.5 text-base font-semibold text-white transition-colors hover:bg-[#A50D26] sm:w-auto"
           >
             Start the free course

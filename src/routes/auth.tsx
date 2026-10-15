@@ -53,6 +53,7 @@ function AuthPage() {
   const next = safeNext(search.next);
   const emailRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
+  useEffect(() => { if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "signup") setMode("signup"); }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState(""); const [showPw, setShowPw] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -128,6 +129,9 @@ function AuthPage() {
   const submitLabel =
     busy ? "Please wait…" : mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link";
 
+  // People who came from the Cat College ad see the course pitch; members signing in see the records-app pitch.
+  const isCatCollegeSignup = mode === "signup";
+
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
       <div className="hidden lg:flex flex-col justify-between bg-primary p-12 text-primary-foreground">
@@ -136,28 +140,53 @@ function AuthPage() {
           <span className="font-display text-lg font-semibold">Cattery Manager</span>
         </div>
         <div>
-          <h1 className="font-display text-5xl font-semibold leading-tight">
-            Your cattery, <span className="text-accent">beautifully</span> organized.
-          </h1>
-          <p className="mt-4 max-w-md text-primary-foreground/80">
-            LOG, LEARN, LOVE - All in one place.
-          </p>
+          {isCatCollegeSignup ? (
+            <h1 className="font-display text-5xl font-semibold leading-tight">
+              Learn to breed cats the right way. <span className="text-accent">Free.</span>
+            </h1>
+          ) : (
+            <h1 className="font-display text-5xl font-semibold leading-tight">
+              Your cattery, <span className="text-accent">beautifully</span> organized.
+            </h1>
+          )}
+          {isCatCollegeSignup ? (
+            <p className="mt-4 max-w-md text-primary-foreground/80">
+              Two full courses, written by a Maine Coon breeder who has been where you are.
+            </p>
+          ) : (
+            <p className="mt-4 max-w-md text-primary-foreground/80">
+              LOG, LEARN, LOVE - All in one place.
+            </p>
+          )}
 
           <div className="mt-8 max-w-md rounded-xl bg-primary-foreground/10 p-5 backdrop-blur-sm border border-primary-foreground/10">
-            <h2 className="font-display text-lg font-semibold leading-snug">
-              Everything you need to know, right at your fingertips.
-            </h2>
-            <p className="mt-2 text-sm text-primary-foreground/80 leading-relaxed">
-              No scattered records. No missing health docs. No guesswork. Cattery Manager keeps every breeding, certificate, and course in one beautiful place — so you can focus on what matters most.
-            </p>
-            <Button
-              type="button"
-              variant="secondary"
-              className="mt-4"
-              onClick={start}
-            >
-              Let's Get Started
-            </Button>
+            {isCatCollegeSignup ? (
+              <>
+                <h2 className="font-display text-lg font-semibold leading-snug">
+                  Sign up in under a minute. No credit card.
+                </h2>
+                <p className="mt-2 text-sm text-primary-foreground/80 leading-relaxed">
+                  Your free account gives you Foundations of Cat Breeding and Common Breeder Health Issues, starting right away.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="font-display text-lg font-semibold leading-snug">
+                  Everything you need to know, right at your fingertips.
+                </h2>
+                <p className="mt-2 text-sm text-primary-foreground/80 leading-relaxed">
+                  No scattered records. No missing health docs. No guesswork. Cattery Manager keeps every breeding, certificate, and course in one beautiful place — so you can focus on what matters most.
+                </p>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="mt-4"
+                  onClick={start}
+                >
+                  Let's Get Started
+                </Button>
+              </>
+            )}
           </div>
         </div>
         <p className="text-xs text-primary-foreground/60">© Cattery Manager</p>
@@ -169,12 +198,25 @@ function AuthPage() {
             <img src={appIcon.url} alt="Cattery Manager" className="h-10 w-auto rounded-md brand-logo-image" />
             <span className="font-display font-semibold">Cattery Manager</span>
           </div>
-          <h1 className="font-display text-5xl font-semibold leading-tight">
-            Your cattery, <span className="text-primary">beautifully</span> organized.
-          </h1>
-          <p className="mt-4 max-w-md text-muted-foreground">
-            LOG, LEARN, LOVE - All in one place.
-          </p>
+          {isCatCollegeSignup ? (
+            <>
+              <h1 className="font-display text-4xl font-semibold leading-tight">
+                Learn to breed cats the right way. <span className="text-primary">Free.</span>
+              </h1>
+              <p className="mt-4 max-w-md text-muted-foreground">
+                Two full courses, written by a Maine Coon breeder who has been where you are.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="font-display text-5xl font-semibold leading-tight">
+                Your cattery, <span className="text-primary">beautifully</span> organized.
+              </h1>
+              <p className="mt-4 max-w-md text-muted-foreground">
+                LOG, LEARN, LOVE - All in one place.
+              </p>
+            </>
+          )}
         </div>
 
         <Card className="w-full max-w-md p-8">
