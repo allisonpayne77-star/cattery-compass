@@ -33,7 +33,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/academy/$courseSlug/$moduleSlug")({
-  head: () => ({ meta: [{ title: "Module — Cat College" }] }),
+  head: () => ({ meta: [{ title: "Module â€” Cat College" }] }),
   notFoundComponent: () => (
     <div className="max-w-xl mx-auto text-center py-16">
       <p className="text-muted-foreground mb-4">Module not found.</p>
@@ -61,7 +61,7 @@ function ModulePage() {
   const qcm = useQueryClient();
 
   if (courseQuery.isLoading) {
-    return <div className="max-w-xl mx-auto py-16 text-center text-muted-foreground">Loading module…</div>;
+    return <div className="max-w-xl mx-auto py-16 text-center text-muted-foreground">Loading moduleâ€¦</div>;
   }
 
   const course = courseQuery.data;
@@ -99,7 +99,7 @@ function ModulePage() {
         <p className="text-muted-foreground">
           You need to pass the{" "}
           <span className="font-medium text-foreground">
-            Module {index} quiz — {prev.title}
+            Module {index} quiz â€” {prev.title}
           </span>{" "}
           with a score of 80% or higher to unlock{" "}
           <span className="font-medium text-foreground">{module.title}</span>.
@@ -147,17 +147,6 @@ function ModulePage() {
             <h1 className="font-display text-2xl sm:text-3xl font-semibold">{module.title}</h1>
             {module.blurb ? <p className="text-muted-foreground">{module.blurb}</p> : null}
           </div>
-          {module.quiz.length > 0 && (
-            <Button
-              size="sm"
-              className="w-full sm:w-auto sm:shrink-0"
-              onClick={() =>
-                document.getElementById("module-quiz")?.scrollIntoView({ behavior: "smooth" })
-              }
-            >
-              <ClipboardCheck className="h-4 w-4 mr-1.5" /> Go to Quiz
-            </Button>
-          )}
         </div>
       </header>
 
@@ -266,7 +255,7 @@ function LessonCard({ lesson }: { lesson: AcademyLesson }) {
           <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
             This lesson has no content yet. The video, slides, and notes for
             <span className="font-medium text-foreground"> {lesson.title}</span> haven't
-            been uploaded. An admin can add it from Admin → Import Course Data.
+            been uploaded. An admin can add it from Admin â†’ Import Course Data.
           </div>
         ) : null}
       </div>
@@ -274,7 +263,7 @@ function LessonCard({ lesson }: { lesson: AcademyLesson }) {
   );
 }
 
-function renderInline(t: string) { return t.replace(/^#{1,6}\s*(.+)$/gm, "**$1**").replace(/#{1,6}[ \t]+([^\n]+)/g, "\n**$1**\n").replace(/\s+-\s+/g, "\n• ").replace(/\s+(\d+)\.\s+/g, "\n$1. ").split(/\*\*(.+?)\*\*/g).map((s, i) => (i % 2 ? <strong key={i}>{s}</strong> : <span key={i}>{s}</span>)); }
+function renderInline(t: string) { return t.replace(/^#{1,6}\s*(.+)$/gm, "**$1**").replace(/#{1,6}[ \t]+([^\n]+)/g, "\n**$1**\n").replace(/\s+-\s+/g, "\nâ€¢ ").replace(/\s+(\d+)\.\s+/g, "\n$1. ").split(/\*\*(.+?)\*\*/g).map((s, i) => (i % 2 ? <strong key={i}>{s}</strong> : <span key={i}>{s}</span>)); }
 function ContentBlocks({ blocks }: { blocks: unknown }) {
   const items = getBlockItems(blocks);
   if (!items.length) return null;
@@ -497,8 +486,8 @@ function Quiz({
         <div>
           <h3 className="font-display text-lg font-semibold">Module quiz</h3>
           <p className="text-sm text-muted-foreground">
-            {questions.length} questions · 80% to pass
-            {alreadyPassed && " · already passed (retake any time)"}
+            {questions.length} questions Â· 80% to pass
+            {alreadyPassed && " Â· already passed (retake any time)"}
           </p>
         </div>
         {submitted && (
@@ -516,7 +505,7 @@ function Quiz({
           <div className="flex items-center gap-2 text-destructive font-medium">
             <XCircle className="h-4 w-4" />
             <span>
-              Review — {shuffled.length - result.correct} of {shuffled.length} answered
+              Review â€” {shuffled.length - result.correct} of {shuffled.length} answered
               incorrectly
             </span>
           </div>
@@ -608,7 +597,7 @@ function Quiz({
                   <p>
                     <span className="text-muted-foreground">Your answer: </span>
                     <span className="text-destructive font-medium">
-                      {describeAnswer(q, answer) || "—"}
+                      {describeAnswer(q, answer) || "â€”"}
                     </span>
                   </p>
                   <p>
@@ -627,14 +616,14 @@ function Quiz({
       <div className="flex items-center justify-between pt-2 border-t">
         {!submitted ? (
           <Button onClick={submit} disabled={saving}>
-            {saving ? "Saving…" : "Submit quiz"}
+            {saving ? "Savingâ€¦" : "Submit quiz"}
           </Button>
         ) : result.passed ? (
           <div className="flex items-center gap-3 w-full justify-between flex-wrap">
             <div className="flex items-center gap-2 text-primary">
               <CheckCircle2 className="h-5 w-5" />
               <span className="font-medium">
-                Passed — {result.correct} of {shuffled.length} correct
+                Passed â€” {result.correct} of {shuffled.length} correct
               </span>
             </div>
             <Button variant="outline" size="sm" onClick={retake}>
@@ -646,7 +635,7 @@ function Quiz({
             <div className="flex items-center gap-2 text-destructive">
               <XCircle className="h-5 w-5" />
               <span className="font-medium">
-                {result.score}% — need 80% to pass. Review and try again.
+                {result.score}% â€” need 80% to pass. Review and try again.
               </span>
             </div>
             <Button onClick={retake}>
@@ -794,7 +783,7 @@ function FillIn({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={submitted}
-        placeholder="Type your answer…"
+        placeholder="Type your answerâ€¦"
         className={
           submitted
             ? correct
@@ -805,7 +794,7 @@ function FillIn({
       />
       {submitted && !correct && (
         <p className="text-xs text-muted-foreground">
-          Accepted: {q.accept.join(" · ")}
+          Accepted: {q.accept.join(" Â· ")}
         </p>
       )}
     </div>
@@ -840,7 +829,7 @@ function describeCorrect(q: QuizQuestion): string {
     return mq.answers.map((i) => mq.choices[i]).join(", ");
   }
   const fq = q as { accept: string[] };
-  return fq.accept.join(" · ");
+  return fq.accept.join(" Â· ");
 }
 
 function shuffle(n: number): number[] {
